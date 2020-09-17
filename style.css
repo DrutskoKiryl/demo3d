@@ -1,0 +1,123 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body { 
+    margin: 0; 
+    height: 100%; 
+    position: relative;
+}
+
+canvas { 
+    display: block; 
+    height: 100%; 
+    width: 100%;
+}
+
+     
+.model-controls {
+    position: absolute; 
+    right: 10px; top: 10px; 
+    padding: 10px;
+    font-family: "Roboto";
+    background: #c0cfd394;
+}
+
+.title {
+    font-weight: 600;
+    font-size: 18px;
+}
+
+
+.checkbox {
+    position: relative;
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+.checkbox::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 1px solid dimgrey;
+    border-radius: 3px;
+}
+
+.checkbox::after {
+    content: '';
+    display: block;
+    width: 7px;
+    height: 12px;
+    border-right: 2px solid #0dc7ff;
+    border-bottom: 2px solid #0dc7ff;
+    position: absolute;
+    transform: rotateZ(45deg);
+    left: 7px;
+    top: 2px;
+    transition-duration: 0.2s;
+    opacity: 1;
+    visibility: visible;
+
+}   
+
+.checkbox.hide::after {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.item {
+    display: flex;
+    align-items: center;
+    margin: 7px 0;
+    padding: 2px 5px;
+    cursor: pointer;
+}
+
+.item.selected {
+    background-color: coral;
+}
+
+.global-controls {
+    position: absolute;
+    width: 100px;
+    left: 0;
+    right: 0;
+    bottom: 21px;
+    margin: 0 auto;
+    font-family: "Roboto";
+    display: flex;
+    justify-content: space-between;
+}
+
+.global-controls .js-play {
+    opacity: 0;
+    visibility: hidden;
+    transition-duration: 0.2s;
+    border: 1px solid dimgrey;
+    padding: 5px 14px;
+    border-radius: 3px;
+    font-size: 19px;
+    text-transform: uppercase;
+    cursor: pointer;
+    background: #c0cfd394;
+    -webkit-user-select: none;
+}
+
+.global-controls .js-center {
+    border: 1px solid dimgrey;
+    padding: 5px 14px;
+    border-radius: 3px;
+    font-size: 19px;
+    text-transform: uppercase;
+    cursor: pointer;
+    background: #c0cfd394;
+    -webkit-user-select: none;
+}
+
+.global-controls .js-play.vis {
+    opacity: 1;
+    visibility: visible;
+}

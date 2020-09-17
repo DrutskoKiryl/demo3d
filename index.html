@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="style.css" rel="stylesheet">
+</head>
+<body>
+    <section class="model-controls">
+        <div class="title">Список деталей:</div>
+        <div class="list">
+
+        </div>
+    </section>
+
+    <section class="global-controls">
+        <span class="js-play">Play</span>
+        <span class="js-center">Center</span>
+    </section>
+
+    <script type="module">
+        import * as THREE from 'https://unpkg.com/three@0.120.1/build/three.module.js';
+        import { OrbitControls } from 'https://unpkg.com/three@0.120.1/examples/jsm/controls/OrbitControls.js';
+        //import { OBJLoader } from 'https://unpkg.com/three@0.120.1/examples/jsm/loaders/OBJLoader.js';
+        import { GLTFLoader } from 'https://unpkg.com/three@0.120.1/examples/jsm/loaders/GLTFLoader.js';
+
+        let nameArr = [
+            {name3D:'0001', realName:'Поршень'},
+            {name3D:'0002', realName:'Шатун'},
+            {name3D:'0003', realName:'Палец'},
+            {name3D:'0004', realName:'Крышка шатуна'},
+            {name3D:'0005', realName:'Коленчатый вал'},
+            {name3D:'0006', realName:'Втулка шатуна'},
+            {name3D:'0007', realName:'Полукольца коленвала'},
+            {name3D:'0008', realName:'Гайка шатуна'},
+            {name3D:'0009', realName:'Болт шатуна'},
+            {name3D:'0010', realName:'Кольца поршневые'},
+            {name3D:'0011', realName:'Шатунный вкладыш'},
+        ]
+
+        function intitControls (objArr) {
+            let contEl = document.querySelector('.model-controls .list')
+
+            objArr.forEach(el => {
+                let div = document.createElement('div');
+                div.classList.add('item')
+                div.innerHTML = `<span data-name3D='${el.name}' class='checkbox'></span><span>${nameArr.filter(elem => elem.name3D == el.name)[0].realName}</span>`
+                contEl.appendChild(div)
+            })
+
+            document.querySelector('.model-controls .list').addEventListener('click', (e) => {  //клик по чекбоксу
+                if (e.target.classList.contains('checkbox')) {
+                    e.target.classList.toggle('hide')
+                    let name = e.target.getAttribute('data-name3D')
+                    let selectedObj = objArr.filter(el => el.name == name)[0]
+                    selectedObj.visible = !selectedObj.visible
+                }
+            })
+
+            document.querySelectorAll('.model-controls .list .item').forEach(el => {  //наведение на item
+                el.addEventListener('mouseenter', (e) => {
+                    e.target.classList.add('selected')
+                    let name = e.target.querySelector('.checkbox').getAttribute('data-name3D')
+                    let selectedObj = objArr.filter(elobj => elobj.name == name)[0]  //это массив Mesh, группа деталей по сути
+                    selectedObj.children.forEach(mesh => {
+                        mesh.userData.defaultMat = mesh.material.color.getHex()  //есть поле userData - в которое записываем исхоный цвет
+                        mesh.material.color.set(0xff7f50)
+                    })
+                })
+            })
+
+            document.querySelectorAll('.model-controls .list .item').forEach(el => {  //уход мыши с item
+                el.addEventListener('mouseleave', (e) => {
+                    e.target.classList.remove('selected')
+                    let name = e.target.querySelector('.checkbox').getAttribute('data-name3D')
+                    let selectedObj = objArr.filter(elobj => elobj.name == name)[0]  //это массив Mesh, группа деталей по сути
+                    selectedObj.children.forEach(mesh => {
+                        mesh.material.color.setHex(mesh.userData.defaultMat)
+                    })
+                })
+            })
+
+            document.querySelector('.js-play').addEventListener('click', Play)
+
+            document.querySelector('.js-center').addEventListener('click', () => {
+                controls.reset();
+            })
+
+        }
+
+        function Play () {
+            controls.autoRotate = true;
+            document.querySelector('.js-play').classList.remove('vis')
+        }
+
+        //реализация библиотеки основана на трех сущностях:
+        //1.сцена
+        var scene = new THREE.Scene();
+        var colorScene = new THREE.Color("rgb(192, 207, 211)")
+        scene.background = colorScene
+
+        //2.камера
+        var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+        camera.position.z = 15;
+        camera.position.y = 25;
+        camera.position.x = 15;
+
+        //3.Рендерер
+        var renderer = new THREE.WebGLRenderer();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        document.body.appendChild( renderer.domElement );
+        renderer.outputEncoding = THREE.sRGBEncoding //обязательная опция при импорте из редактора threeeditor - чтобы светлость была одниноковой
+
+        //лоадер
+        // instantiate a loader
+        //var loader = new OBJLoader();
+
+        /*
+        // load a resource
+        loader.load(
+            // resource URL
+            'dvs.obj',
+            // called when resource is loaded
+            function ( object ) {
+
+                scene.add( object );
+                console.log(object);
+                //renderer.render( scene, camera );
+
+            },
+            // called when loading is in progresses
+            function ( xhr ) {
+
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+            },
+            // called when loading has errors
+            function ( error ) {
+
+                console.log( 'An error happened' );
+
+            }
+        ); */
+
+
+        // Instantiate a loader
+        var loader = new GLTFLoader();
+        // Load a glTF resource
+        loader.load(
+            // resource URL
+            'scene.gltf',
+            // called when the resource is loaded
+            function ( gltf ) {
+
+                scene.add( gltf.scene );
+
+                gltf.animations; // Array<THREE.AnimationClip>
+                gltf.scene; // THREE.Group
+                gltf.scenes; // Array<THREE.Group>
+                gltf.cameras; // Array<THREE.Camera>
+                gltf.asset; // Object
+                
+                console.log(gltf.scene.children[0].children)
+                intitControls(gltf.scene.children[0].children)
+                
+            },
+            // called while loading is progressing
+            function ( xhr ) {
+
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+            },
+            // called when loading has errors
+            function ( error ) {
+
+                console.log( 'An error happened' );
+
+            }
+        );
+
+        //добавление камеры через отдельный модуль-библиотеку
+        var controls = new OrbitControls( camera, renderer.domElement );
+        controls.autoRotate = true;
+        controls.maxDistance = 100;
+        controls.minDistance = 3;
+        /*
+        //добавление сетки-помощник (есть в самой библиотеке)
+        var gridHelper = new THREE.GridHelper( 10, 30 );
+        scene.add( gridHelper );
+
+        //добавление осей (хелпер)
+        var axesHelper = new THREE.AxesHelper( 5 );
+        scene.add( axesHelper ); */
+       
+
+        //объекты для определения распространения лучей камеры (Raycaster)
+        var raycaster = new THREE.Raycaster();
+        var mouse = new THREE.Vector2();
+        function onMouseMove( event ) {
+            mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+            mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+             // обновление лучей в зависимостит от положения мыши и камеры
+             raycaster.setFromCamera( mouse, camera );
+
+            // расчет объектов попадающих под лучи
+            
+            /*var intersects = raycaster.intersectObjects( meshArr, true );  //внуть передаем массив объектов, которые надо отслеживать
+            
+            if (intersects.length > 0) {
+                console.log(intersects)
+                let groupObj = intersects[0].object.parent
+                let groupNameId = intersects[0].object.parent.name
+                //alert(groupNameId)
+                //intersects[0].object.material.color.set( 0x000000 )
+            } else {
+                //cube.material.color.set( 0x00ff00 )
+            }
+            */
+           
+        }
+        
+        //функция анимации - срабатывает при requestAnimationFrame и всегда включает рендерер для перерисовки  renderer.render( scene, camera )
+        var animate = function () {
+           
+            requestAnimationFrame( animate );
+
+            controls.update(); //обновление камеры
+
+            renderer.render( scene, camera );
+        };
+
+        //вешаем  слушателя на событие мыши
+        renderer.domElement.addEventListener( 'mousemove', onMouseMove, false );
+
+        //клик - остновка вращения
+        renderer.domElement.addEventListener( 'click', ()=>{
+            controls.autoRotate = false;
+            let btnPlayOrPause = document.querySelector('.js-play')
+            if (!btnPlayOrPause.classList.contains('vis')) {
+                btnPlayOrPause.classList.add('vis')
+            }
+            
+        });
+
+
+        //изменение размеров экрана
+        window.addEventListener( 'resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+
+            renderer.setSize( window.innerWidth, window.innerHeight );
+        });
+
+
+        animate();
+
+    </script>
+</body>
+</html>
