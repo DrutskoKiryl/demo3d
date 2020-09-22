@@ -121,3 +121,12 @@ canvas {
     opacity: 1;
     visibility: visible;
 }
+
+.tooltip {
+    position: absolute;
+    background: #0dc7ff;
+    display: block;
+    padding: 5px 7px;
+    font-size: 18px;
+    border-radius: 3px;
+}   

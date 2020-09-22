@@ -10,7 +10,6 @@
     <section class="model-controls">
         <div class="title">Список деталей:</div>
         <div class="list">
-
         </div>
     </section>
 
@@ -18,6 +17,8 @@
         <span class="js-play">Play</span>
         <span class="js-center">Center</span>
     </section>
+
+    <span class="tooltip"></span>
 
     <script type="module">
         import * as THREE from 'https://unpkg.com/three@0.120.1/build/three.module.js';
@@ -96,7 +97,8 @@
 
         function InitRaycaster (objArr) {
             let mouseSelectedMesh = undefined  //переменная, содержащая выделенный объект
-
+            let toolTipEl = document.querySelector('.tooltip')
+            let name3D
             //вешаем  слушателя на событие мыши
             renderer.domElement.addEventListener( 'mousemove', (event) => {
                 mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
@@ -111,7 +113,7 @@
                 if (intersects.length > 0 ) {
                     if ( intersects[0].object !== mouseSelectedMesh) {  //если новый объект, не совпадает с выделенным
                        
-                        console.log(intersects[0].object.parent.name)
+                        name3D = (intersects[0].object.parent.name)  //номер группы
 
                         if (mouseSelectedMesh !== undefined) {
                             mouseSelectedMesh.material.color.set(mouseSelectedMesh.userData.defaultMat)
@@ -120,12 +122,16 @@
                         mesh.userData.defaultMat = mesh.material.color.getHex()  //есть поле userData - в которое записываем исхоный цвет
                         mesh.material.color.set(0xff7f50)
                         mouseSelectedMesh = mesh
+                        toolTiptEl.texContent = nameArr.filter(elem => elem.name3D == name3D)[0].realName
+                        toolTiptEl.style.left = event.clientX + "px";
+                        toolTiptEl.style.top = event.clientY + "px";
                     }
                     
                 } else {   //если курсор в не попал на сборку вообще
                     if (mouseSelectedMesh !== undefined) {
                         mouseSelectedMesh.material.color.set(mouseSelectedMesh.userData.defaultMat)
                         mouseSelectedMesh = undefined
+                       // toolTiptEl.texContent =  ''
                     }   
                 }
                 
