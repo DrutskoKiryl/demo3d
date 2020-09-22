@@ -53,8 +53,13 @@
                 if (e.target.classList.contains('checkbox')) {
                     e.target.classList.toggle('hide')
                     let name = e.target.getAttribute('data-name3D')
-                    let selectedObj = objArr.filter(el => el.name == name)[0]
-                    selectedObj.visible = !selectedObj.visible
+                    let selectedObj = objArr.filter(el => el.name == name)[0]  //нашли group
+                    
+                    selectedObj.children.forEach(el => {
+                        el.layers.toggle(0)                          //переключаем из 0 -го слоя, который у всех по умолчанию
+                    })
+
+                    //selectedObj.visible = !selectedObj.visible
                 }
             })
 
@@ -89,6 +94,44 @@
 
         }
 
+        function InitRaycaster (objArr) {
+            let mouseSelectedMesh = undefined  //переменная, содержащая выделенный объект
+
+            //вешаем  слушателя на событие мыши
+            renderer.domElement.addEventListener( 'mousemove', (event) => {
+                mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+                mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+                // обновление лучей в зависимостит от положения мыши и камеры
+                raycaster.setFromCamera( mouse, camera );
+
+                // расчет объектов попадающих под лучи
+                var intersects = raycaster.intersectObjects( objArr, true );  //внуть передаем массив объектов, которые надо отслеживать, true -рекурсия
+                
+                if (intersects.length > 0 ) {
+                    if ( intersects[0].object !== mouseSelectedMesh) {  //если новый объект, не совпадает с выделенным
+                       
+                        console.log(intersects[0].object.parent.name)
+
+                        if (mouseSelectedMesh !== undefined) {
+                            mouseSelectedMesh.material.color.set(mouseSelectedMesh.userData.defaultMat)
+                        }    
+                        let mesh = intersects[0].object
+                        mesh.userData.defaultMat = mesh.material.color.getHex()  //есть поле userData - в которое записываем исхоный цвет
+                        mesh.material.color.set(0xff7f50)
+                        mouseSelectedMesh = mesh
+                    }
+                    
+                } else {   //если курсор в не попал на сборку вообще
+                    if (mouseSelectedMesh !== undefined) {
+                        mouseSelectedMesh.material.color.set(mouseSelectedMesh.userData.defaultMat)
+                        mouseSelectedMesh = undefined
+                    }   
+                }
+                
+            });
+        }
+
         function Play () {
             controls.autoRotate = true;
             document.querySelector('.js-play').classList.remove('vis')
@@ -105,12 +148,18 @@
         camera.position.z = 15;
         camera.position.y = 25;
         camera.position.x = 15;
+        
 
         //3.Рендерер
         var renderer = new THREE.WebGLRenderer();
         renderer.setSize( window.innerWidth, window.innerHeight );
         document.body.appendChild( renderer.domElement );
         renderer.outputEncoding = THREE.sRGBEncoding //обязательная опция при импорте из редактора threeeditor - чтобы светлость была одниноковой
+
+        //для отслеживания лучей
+        var raycaster = new THREE.Raycaster();
+        raycaster.layers.set( 0 )  //отслеживаемый слой, 0-31
+        var mouse = new THREE.Vector2();
 
         //лоадер
         // instantiate a loader
@@ -162,7 +211,9 @@
                 gltf.asset; // Object
                 
                 console.log(gltf.scene.children[0].children)
+
                 intitControls(gltf.scene.children[0].children)
+                InitRaycaster(gltf.scene.children[0].children)
                 
             },
             // called while loading is progressing
@@ -193,7 +244,7 @@
         var axesHelper = new THREE.AxesHelper( 5 );
         scene.add( axesHelper ); */
        
-
+        /*
         //объекты для определения распространения лучей камеры (Raycaster)
         var raycaster = new THREE.Raycaster();
         var mouse = new THREE.Vector2();
@@ -206,7 +257,7 @@
 
             // расчет объектов попадающих под лучи
             
-            /*var intersects = raycaster.intersectObjects( meshArr, true );  //внуть передаем массив объектов, которые надо отслеживать
+            /*var intersects = raycaster.intersectObjects( meshArr, true );  //внуть передаем массив объектов, которые надо отслеживать, true -рекурсия
             
             if (intersects.length > 0) {
                 console.log(intersects)
@@ -217,9 +268,10 @@
             } else {
                 //cube.material.color.set( 0x00ff00 )
             }
-            */
+            
            
         }
+        */
         
         //функция анимации - срабатывает при requestAnimationFrame и всегда включает рендерер для перерисовки  renderer.render( scene, camera )
         var animate = function () {
@@ -232,7 +284,7 @@
         };
 
         //вешаем  слушателя на событие мыши
-        renderer.domElement.addEventListener( 'mousemove', onMouseMove, false );
+        //renderer.domElement.addEventListener( 'mousemove', onMouseMove, false );
 
         //клик - остновка вращения
         renderer.domElement.addEventListener( 'click', ()=>{
